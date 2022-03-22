@@ -4,13 +4,13 @@ from pyglet.window import mouse
 
 window = pyglet.window.Window()
 main_batch = pyglet.graphics.Batch()
+bg_batch = pyglet.graphics.Batch()
 game_objects = []
 player = None
 
 def init():
     # Set up window
     fps_display = pyglet.window.FPSDisplay(window=window)
-    # ? # bg = pyglet.graphics.Batch()
     # game_objects = player
 
     # load assets
@@ -33,13 +33,13 @@ def drawPlayer():
 
 def drawBackground():
     backgroundImage = pyglet.resource.image('assets/img/background.png')
-    background = pyglet.sprite.Sprite(backgroundImage, batch=main_batch)
+    background = pyglet.sprite.Sprite(backgroundImage, batch=bg_batch)
     winx = window.get_size()[1]
-    bginfo = background.get_image_data()
+    bginfo = background.image.get_image_data()
     windowfit = int((winx/bginfo.width)+2)
     for i in range(windowfit):
         newwinwidth = (i*bginfo.width)
-        background.blit(newwinwidth,0)
+    #     background.blit(newwinwidth,0)
 
 # # debug
 # event_logger = pyglet.window.event.WindowEventLogger()
@@ -51,6 +51,7 @@ def jump():
 
 
 def update(dt):
+    global player
     winx = window.get_size()[1]
     print (player.position)
     playx = player.position[0]
@@ -73,6 +74,7 @@ def on_key_press(symbol, modifiers):
 @window.event
 def on_draw():
     window.clear()
+    bg_batch.draw()
     main_batch.draw()
 
 
