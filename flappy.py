@@ -6,7 +6,7 @@ window = pyglet.window.Window()
 main_batch = pyglet.graphics.Batch()
 bg_batch = pyglet.graphics.Batch()
 game_objects = []
-player = None
+# player = None
 
 def init():
     # Set up window
@@ -27,9 +27,10 @@ music.play()
 
 def drawPlayer():
     global player
-    player.dx = 1 #00.0
+    # player.dx = 1 #00.0
     playerImage = pyglet.resource.image('assets/img/yellowbird-midflap.png')
     player = pyglet.sprite.Sprite(playerImage, batch=main_batch)
+
 
 def drawBackground():
     backgroundImage = pyglet.resource.image('assets/img/background.png')
@@ -51,12 +52,13 @@ def jump():
 
 
 def update(dt):
-    global player
+    player.update(dt)
+    # global player
     winx = window.get_size()[1]
     print (player.position)
     playx = player.position[0]
     while (player.position[0] < winx/3):
-        player.x += player.dx * dt
+        player.x += player.x * dt
         print(player.x)
         print(player.position[0])
         print(winx/3)
