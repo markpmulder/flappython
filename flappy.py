@@ -6,9 +6,8 @@ window = pyglet.window.Window()
 fps_display = pyglet.window.FPSDisplay(window=window)
 main_batch = pyglet.graphics.Batch()
 bg_batch = pyglet.graphics.Batch()
-pipe_batch = pyglet.graphics.Batch()
-game_objects = []
 background = []
+pipes = []
 
 winsize = window.get_size()
 player_x_start = (winsize[0]/3)
@@ -17,7 +16,7 @@ player_y_start = (winsize[1]/2)
 gravspeed = 15
 
 def load_assets():
-    global background, music, playerImage, backgroundImage, groundImage, pipeImage, jumpsnd
+    global music, playerImage, backgroundImage, groundImage, pipeImage, jumpsnd
     music = pyglet.resource.media('assets/snd/star60.wav')
     playerImage = pyglet.resource.image('assets/img/yellowbird-midflap.png')
     backgroundImage = pyglet.resource.image('assets/img/background.png')
@@ -31,8 +30,8 @@ def init():
     load_assets()
     # music.play()
     drawBackground(background, backgroundImage)
-    drawPlayer(playerImage)
     drawPipes(groundImage, pipeImage)
+    drawPlayer(playerImage)
 
 def drawPlayer(playerImage):
     global player
@@ -50,15 +49,12 @@ def drawBackground(background, backgroundImage):
         background.append(pyglet.sprite.Sprite(backgroundImage, (i*backgroundImage.width), backgroundImage.y, batch=bg_batch))
 
 def drawPipes(groundImage, pipeImage):
-    # groundImage=  pyglet.resource.image('assets/img/base.png')
-    # pipeImage = pyglet.resource.image('assets/img/pipe-green.png')
-    pipes = []
+    global pipes, ground
     backgroundMultiplier = int((window.get_size()[0]/(backgroundImage.width/2))+1)
     print(backgroundMultiplier)
     for i in range (backgroundMultiplier):
-        pipes.append(pyglet.sprite.Sprite(pipeImage, (i*100), 300, batch=main_batch))
-    pipe = pyglet.sprite.Sprite(pipeImage, 100, 100, batch=main_batch)
-    ground = pyglet.sprite.Sprite(groundImage, 300, 300, batch=main_batch)
+        pipes.append(pyglet.sprite.Sprite(pipeImage, (i*2*100), -200, batch=main_batch))
+    ground = pyglet.sprite.Sprite(groundImage, 0, -50, batch=main_batch)
 
 def jump():
     global jumpsnd
@@ -71,8 +67,8 @@ def jump():
 def update(dt):
     # player.x += player.x * dt
     player.y = player.y - ((gravspeed**2)*dt)
-    print((player.y%360)/2)
-    player.rotation = abs((player.y%360)/2)
+    print(player.y)
+    player.rotation = abs(player.y)
     # player.y = player.y - (gravspeed*(dt**2))
 
 
@@ -89,7 +85,6 @@ def on_draw():
     bg_batch.draw()
     main_batch.draw()
     fps_display.draw()
-
 
 if __name__ == "__main__":
     init()
