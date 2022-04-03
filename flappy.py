@@ -1,4 +1,5 @@
 import pyglet
+import random
 from pyglet.window import key
 from pyglet.window import mouse
 
@@ -8,21 +9,28 @@ main_batch = pyglet.graphics.Batch()
 bg_batch = pyglet.graphics.Batch()
 background = []
 pipes = []
+pipesUp = []
+ground = []
 
 winsize = window.get_size()
+print("Winsize", winsize)
 player_x_start = (winsize[0]/3)
 player_y_start = (winsize[1]/2)
 
-gravspeed = 15
+gravity = 10
 
 def load_assets():
-    global music, playerImage, backgroundImage, groundImage, pipeImage, jumpsnd
+    global music, playerImage, backgroundImage, groundImage, pipeImageUp, pipeImageDown, jumpsnd
+    # sounds
     music = pyglet.resource.media('assets/snd/star60.wav')
+    jumpsnd = pyglet.resource.media('assets/snd/wing.wav')
+    # images
     playerImage = pyglet.resource.image('assets/img/yellowbird-midflap.png')
     backgroundImage = pyglet.resource.image('assets/img/background.png')
     groundImage =  pyglet.resource.image('assets/img/base.png')
-    pipeImage = pyglet.resource.image('assets/img/pipe-green.png')
-    jumpsnd = pyglet.resource.media('assets/snd/wing.wav')
+    pipeImageUp = pyglet.resource.image('assets/img/pipe-green.png')
+    pipeImageDown = pyglet.resource.image('assets/img/pipe-green.png')
+    
 
 
 def init():
@@ -30,7 +38,7 @@ def init():
     load_assets()
     # music.play()
     drawBackground(background, backgroundImage)
-    drawPipes(groundImage, pipeImage)
+    drawPipes(groundImage, pipeImageUp, pipeImageDown)
     drawPlayer(playerImage)
 
 def drawPlayer(playerImage):
@@ -44,33 +52,65 @@ def drawPlayer(playerImage):
 def drawBackground(background, backgroundImage):
     # global background
     # backgroundImage = pyglet.resource.image('assets/img/background.png')
-    backgroundMultiplier = int((window.get_size()[0]/backgroundImage.width)+1)
-    for i in range(backgroundMultiplier):
+    backgroundFillAmount = int((window.get_size()[0]/backgroundImage.width)+2)
+    for i in range(backgroundFillAmount):
         background.append(pyglet.sprite.Sprite(backgroundImage, (i*backgroundImage.width), backgroundImage.y, batch=bg_batch))
 
-def drawPipes(groundImage, pipeImage):
-    global pipes, ground
-    backgroundMultiplier = int((window.get_size()[0]/(backgroundImage.width/2))+1)
-    print(backgroundMultiplier)
-    for i in range (backgroundMultiplier):
-        pipes.append(pyglet.sprite.Sprite(pipeImage, (i*2*100), -200, batch=main_batch))
-    ground = pyglet.sprite.Sprite(groundImage, 0, -50, batch=main_batch)
+
+
+def drawPipes(groundImage, pipeImageUp, pipeImageDown):
+    global pipes, pipesUp, ground
+    # Draw background
+    backgroundFillAmount = int((window.get_size()[0]/(backgroundImage.width/2))+2)
+    # print(backgroundFillAmount)
+    for i in range (backgroundFillAmount):
+        heightMod = random.randrange(0, 200)
+        pipesUp.append(pyglet.sprite.Sprite(pipeImageUp, ((i*2*100)+pipeImageUp.width), 550+heightMod, batch=main_batch))
+        pipes.append(pyglet.sprite.Sprite(pipeImageDown, (i*2*100), -200+heightMod , batch=main_batch))
+    for j in pipesUp:
+        j.update(j.x, rotation=180)
+    pipes = (pipes +pipesUp) 
+    for k in pipes:
+        print ("pipeX: ", k.x)
+ 
+    # Draw groundelement
+    groundFillAmount = int((window.get_size()[0]/groundImage.width)+3)
+    # print("groundFillAmount", groundFillAmount)
+    for i in range (groundFillAmount):
+        ground.append(pyglet.sprite.Sprite(groundImage, (i*backgroundImage.width), (backgroundImage.y-50 ), batch=main_batch))
+        # print (backgroundImage.height)
 
 def jump():
-    global jumpsnd
+    global jumpsnd, gravity
     jumpsnd = pyglet.resource.media('assets/snd/wing.wav')
     jumpsnd.play()
-    player.y = player.y + ((gravspeed**2))
-    # player.sprite.Spriterotation(-10)
-
+    gravity = gravity - 15
 
 def update(dt):
-    # player.x += player.x * dt
-    player.y = player.y - ((gravspeed**2)*dt)
-    print(player.y)
-    player.rotation = abs(player.y)
-    # player.y = player.y - (gravspeed*(dt**2))
+    global gravity, ground, pipes, background
+    player.y = player.y - (gravity)
+    if (gravity < 11):  
+        gravity = gravity + 1
+    # print("gravity is: ", gravity)
+    player.rotation = gravity*2
 
+    # # failstate 1
+    # if (player.y < 0) or (player.y > 480):
+    #     pyglet.app.exit()
+
+    # move ground, pipes and background to right after going offscreen
+    for i in ground:
+        i.x = i.x - 2  
+        if (i.x < -i.width): # 288 width
+            i.x = winsize[0]
+    for j in pipes:
+        j.x = j.x - 1
+        if (j.x < -j.width): # 52 width
+            j.x = winsize[0]+j.width
+    for k in background:
+        k.x = k.x - .5
+        if (k.x < -k.width): # 288 width
+            k.x = winsize[0]
 
 @window.event
 def on_key_press(symbol, modifiers):
