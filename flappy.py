@@ -70,10 +70,10 @@ def drawPipes(groundImage, pipeImageUp, pipeImageDown):
         pipes.append(pyglet.sprite.Sprite(pipeImageDown, (i*2*100), -200+heightMod , batch=main_batch))
     for j in pipesUp:
         j.update(j.x, rotation=180)
-    pipes = (pipes +pipesUp) 
+    pipes = (pipes + pipesUp) 
     for k in pipes:
         print ("pipeX: ", k.x)
-        print((pipes))
+        # print((pipes))
     # pipesx = [pipes.index(), pipes[pipes.index()].x]
     # print(pipesx)
  
@@ -84,18 +84,13 @@ def drawPipes(groundImage, pipeImageUp, pipeImageDown):
         ground.append(pyglet.sprite.Sprite(groundImage, (i*backgroundImage.width), (backgroundImage.y-50 ), batch=main_batch))
         # print (backgroundImage.height)
 
-# def distance(self,target):
-#     return (target-self)
-
-def which_check():
+def distance_to_closest_pipe_x(player_x):
     global pipes
-    pipesx=(pipe.x for pipe in pipes)
-    return pipesx
 
-#     pipesx = [pipes.index(), pipes[pipes.index()].x]
-#     print(pipesx)
-#     return min(pipesx)
-
+    pipesx = []
+    pipesx=(int(pipe.x-player_x) for pipe in pipes if (int(pipe.x-player_x) > 0))
+    newlist = list(pipesx)
+    return min(newlist)
 
 # def check_collision(self):
 #     for i in list_of_mobs:
@@ -139,11 +134,10 @@ def update(dt):
         j.x = j.x - 1
         if (j.x < -j.width): # 52 width
             j.x = winsize[0]+j.width
-    testvar = which_check
-    print(testvar)
-        # hit = distance(player.x, j.x)
-        # if (hit < 0):
-        #     print('hit')
+    target = distance_to_closest_pipe_x(player.x)
+    print(target)
+    if target == 1:
+        print('hit')
 
     for k in background:
         k.x = k.x - .5
