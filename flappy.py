@@ -11,6 +11,7 @@ background = []
 pipes = []
 pipesUp = []
 ground = []
+mobs_to_collide = []
 
 winsize = window.get_size()
 print("Winsize", winsize)
@@ -72,6 +73,9 @@ def drawPipes(groundImage, pipeImageUp, pipeImageDown):
     pipes = (pipes +pipesUp) 
     for k in pipes:
         print ("pipeX: ", k.x)
+        print((pipes))
+    # pipesx = [pipes.index(), pipes[pipes.index()].x]
+    # print(pipesx)
  
     # Draw groundelement
     groundFillAmount = int((window.get_size()[0]/groundImage.width)+3)
@@ -79,6 +83,34 @@ def drawPipes(groundImage, pipeImageUp, pipeImageDown):
     for i in range (groundFillAmount):
         ground.append(pyglet.sprite.Sprite(groundImage, (i*backgroundImage.width), (backgroundImage.y-50 ), batch=main_batch))
         # print (backgroundImage.height)
+
+# def distance(self,target):
+#     return (target-self)
+
+def which_check():
+    global pipes
+    pipesx=(pipe.x for pipe in pipes)
+    return pipesx
+
+#     pipesx = [pipes.index(), pipes[pipes.index()].x]
+#     print(pipesx)
+#     return min(pipesx)
+
+
+# def check_collision(self):
+#     for i in list_of_mobs:
+#         if self.distance(i) < (self.width/2 + i.width/2):
+#             return True
+
+# def check_collision(self):
+#     global mobs_to_collide, pipes
+#     if mobs_to_collide == []:
+#         mobs_to_collide = pipes[:]
+#     if self in mobs_to_collide:
+#         mobs_to_collide.remove(self)
+#     for i in mobs_to_collide:
+#         if self.distance(i) < (self.width/2 + i.width/2):
+#             return True
 
 def jump():
     global jumpsnd, gravity
@@ -107,10 +139,17 @@ def update(dt):
         j.x = j.x - 1
         if (j.x < -j.width): # 52 width
             j.x = winsize[0]+j.width
+    testvar = which_check
+    print(testvar)
+        # hit = distance(player.x, j.x)
+        # if (hit < 0):
+        #     print('hit')
+
     for k in background:
         k.x = k.x - .5
         if (k.x < -k.width): # 288 width
             k.x = winsize[0]
+
 
 @window.event
 def on_key_press(symbol, modifiers):
