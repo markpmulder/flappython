@@ -21,10 +21,17 @@ player_y_start = (winsize[1]/2)
 gravity = 10
 
 def load_assets():
-    global music, playerImage, backgroundImage, groundImage, pipeImageUp, pipeImageDown, jumpsnd
-    # sounds
-    music = pyglet.resource.media('assets/snd/star60.wav')
-    jumpsnd = pyglet.resource.media('assets/snd/wing.wav')
+    global music, playerImage, backgroundImage, groundImage, pipeImageUp, pipeImageDown, jumpsnd, hitsound, pointsound, soundeffects
+    # sounds 
+    # music = pyglet.resource.media('assets/snd/star60.wav')
+    # jumpsnd = pyglet.resource.media('assets/snd/wing.wav')
+    # hitsound = pyglet.resource.media('assets/snd/hit.wav') 
+    # pointsound = pyglet.resource.media('assets/snd/point.wav')
+    soundeffects = pyglet.media.Player()
+    music = pyglet.media.load('assets/snd/star60.wav')
+    jumpsnd = pyglet.media.load('assets/snd/wing.wav')
+    hitsound = pyglet.media.load('assets/snd/hit.wav')
+    pointsound = pyglet.media.load('assets/snd/point.wav')
     # images
     playerImage = pyglet.resource.image('assets/img/yellowbird-midflap.png')
     backgroundImage = pyglet.resource.image('assets/img/background.png')
@@ -86,26 +93,43 @@ def drawPipes(groundImage, pipeImageUp, pipeImageDown):
 
 def distance_to_closest_pipe_x(player_x):
     global pipes
-
-    pipesx = []
+    # get x and y values of pipe closest to the player
     pipesx=(int(pipe.x-player_x) for pipe in pipes if (int(pipe.x-player_x) > 0))
-    newlist = list(pipesx)
-    return min(newlist)
+    pipesy=(int(pipe.y) for pipe in pipes)
+    pipesx_list = list(pipesx)
+    pipesy_list = list(pipesy)
+    # get get values of closest pipe to player
+    minx = min(pipesx_list)
+    minvalues = [minx, pipesy_list[pipesx_list.index(minx)]]
+    return minvalues
 
-# def check_collision(self):
-#     for i in list_of_mobs:
-#         if self.distance(i) < (self.width/2 + i.width/2):
-#             return True
+def create_collision_area(startvalue):
+    leftbound = startvalue[0] - (52/2)
+    rightbound = startvalue[0] + (52/2)
+    
+    lowerpipe_lowerbound = 0
+    lowerpipe_upperbound = startvalue[1] + 288
+    upperpipe_lowerbound = startvalue[1] + 750
+    upperpipe_upperbound = startvalue[1] + 750 + 288
+    pipearea_up = [leftbound, rightbound, lowerpipe_lowerbound, lowerpipe_upperbound]
+    pipearea_down = [leftbound, rightbound, upperpipe_lowerbound, upperpipe_upperbound]
+    return [pipearea_up, pipearea_down] 
 
-# def check_collision(self):
-#     global mobs_to_collide, pipes
-#     if mobs_to_collide == []:
-#         mobs_to_collide = pipes[:]
-#     if self in mobs_to_collide:
-#         mobs_to_collide.remove(self)
-#     for i in mobs_to_collide:
-#         if self.distance(i) < (self.width/2 + i.width/2):
-#             return True
+def check_collision(player_pos, collisionarea):
+    # print(int(player_pos[0]))
+    # print(collisionarea)
+    # print((collisionarea[0][0]+collisionarea[0][1])/2) 
+    if (collisionarea[0][0] < player_pos[0] < collisionarea[0][1]):
+        if (collisionarea[0][2] < player_pos[1] < collisionarea[0][3]):
+            collision = 'hit'
+            return collision
+        elif (collisionarea[1][2] < player_pos[1] < collisionarea[1][3]):
+            collision = 'hit'
+            return collision
+    elif (int(player_pos[0]) == int((collisionarea[0][0]+collisionarea[0][1])/2)):
+        collision = 'point'
+        return collison
+    return None
 
 def jump():
     global jumpsnd, gravity
@@ -113,19 +137,35 @@ def jump():
     jumpsnd.play()
     gravity = gravity - 15
 
+def update_bgelements(element, speed):
+    for i in element:
+        i.x = i.x - speed
+    if (i.x < -i.width):
+        i.x = winsize[0]
+
+def update_pipes(element, speed):
+        for j in element:
+            j.x = j.x - 1
+        if (j.x < -j.width):
+            j.x = winsize[0]+j.width
+
 def update(dt):
-    global gravity, ground, pipes, background
+    global gravity, ground, pipes, background, hitsound, pointsound, soundeffects
     player.y = player.y - (gravity)
     if (gravity < 11):  
         gravity = gravity + 1
-    # print("gravity is: ", gravity)
     player.rotation = gravity*2
+    
+    soundeffects.play()
 
     # # failstate 1
     # if (player.y < 0) or (player.y > 480):
     #     pyglet.app.exit()
 
-    # move ground, pipes and background to right after going offscreen
+    # # move ground, pipes and background to right after going offscreen
+    # update_bgelements(ground, 2) # 288 width
+    # update_bgelements(background, 0.5) # 288 width
+    # update_pipes(pipes, 1) # 52 width
     for i in ground:
         i.x = i.x - 2  
         if (i.x < -i.width): # 288 width
@@ -133,16 +173,30 @@ def update(dt):
     for j in pipes:
         j.x = j.x - 1
         if (j.x < -j.width): # 52 width
-            j.x = winsize[0]+j.width
-    target = distance_to_closest_pipe_x(player.x)
-    print(target)
-    if target == 1:
-        print('hit')
-
+            j.x = winsize[0] + j.width
     for k in background:
         k.x = k.x - .5
         if (k.x < -k.width): # 288 width
             k.x = winsize[0]
+
+    # collision
+    minvalues = distance_to_closest_pipe_x(player.x)
+    print(minvalues)
+    collisionarea = create_collision_area(minvalues)
+    print(collisionarea)
+    player_pos = [player.x, player.y] 
+    collision = check_collision(player_pos, collisionarea)
+    # print(collision) 
+
+    if collision == 'hit':
+        print('hit')   
+        # hitsound.play()
+        # soundeffects.queue(hitsound)
+        # soundeffects
+    elif collision == 'point': 
+        print('point')
+        soundeffects.queue(pointsound)
+        # pointsound.play()
 
 
 @window.event
